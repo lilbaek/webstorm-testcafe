@@ -1,0 +1,11 @@
+.idea
+*.iml
+*.ipr
+.gradle
+
+build/
+out/
+gen/
+dist/
+testData/
+

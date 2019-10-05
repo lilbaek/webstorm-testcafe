@@ -1,0 +1,24 @@
+<idea-plugin>
+    <id>com.lilbaek.webstorm-testcafe</id>
+    <name>TestCafe runner for Webstorm</name>
+    <vendor></vendor>
+
+    <description><![CDATA[
+    Integration with TestCafe A node.js tool to automate end-to-end web testing
+    ]]></description>
+
+    <!-- Enable plugin for all products -->
+    <depends>com.intellij.modules.lang</depends>
+    <!-- This enables the PSI capability for JavaScript -->
+    <depends>JavaScript</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <configurationType implementation="org.lilbaek.webstorm.testcafe.run.TestCafeRunConfigurationType"/>
+        <programRunner implementation="org.lilbaek.webstorm.testcafe.run.TestCafeProgramRunner"/>
+        <runConfigurationProducer implementation="org.lilbaek.webstorm.testcafe.run.TestCafeRunConfigurationProducer"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+</idea-plugin>
