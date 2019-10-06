@@ -1,8 +1,6 @@
 package org.lilbaek.webstorm.testcafe.run;
 
-import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
-import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -10,10 +8,7 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.testframework.TestConsoleProperties;
-import com.intellij.execution.testframework.autotest.AbstractAutoTestManager;
-import com.intellij.execution.testframework.autotest.ToggleAutoTestAction;
 import com.intellij.execution.testframework.sm.SMCustomMessagesParsing;
 import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter;
@@ -24,13 +19,10 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VirtualFile;
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessageVisitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
-
-import java.util.List;
 
 public class TestCafeRunProfileState extends CommandLineState {
 
@@ -48,7 +40,7 @@ public class TestCafeRunProfileState extends CommandLineState {
         Project project = getEnvironment().getProject();
         String basePath = project.getBasePath();
 
-        GeneralCommandLine commandLine = new GeneralCommandLine();
+        TestCafeGeneralCommandLine commandLine = new TestCafeGeneralCommandLine();
         commandLine.setExePath("node.exe");
 
         @SystemIndependent
@@ -61,20 +53,29 @@ public class TestCafeRunProfileState extends CommandLineState {
             commandLine.addParameter(configuration.options.browser);
         }
         commandLine.addParameter(testFolder);
-        if(configuration.options.testCafeTestName != null && !configuration.options.testCafeTestName.isEmpty()) {
+        if(TestCafeCurrentSetup.TestName != null && !TestCafeCurrentSetup.TestName.isEmpty()) {
             commandLine.addParameter("-t");
-            String testName = configuration.options.testCafeTestName.replace("'", "").replace("\"", "");
+            String testName = removeIllegalChars(TestCafeCurrentSetup.TestName);
             commandLine.addParameter(testName);
+        }
+        if(TestCafeCurrentSetup.FixtureName != null && !TestCafeCurrentSetup.FixtureName.isEmpty()) {
+            commandLine.addParameter("-f");
+            String fixtureName = removeIllegalChars(TestCafeCurrentSetup.FixtureName);
+            commandLine.addParameter(fixtureName);
         }
         commandLine.withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE);
         return new ColoredProcessHandler(commandLine);
     }
 
+    private String removeIllegalChars(String str) {
+        return str.replace("'", "").replace("\"", "").replace("`", "");
+    }
+
     @SystemIndependent
     private String getTestFolder() {
-        return configuration.options.testCafeFolder == null || configuration.options.testCafeFolder.isEmpty()
+        return TestCafeCurrentSetup.Folder == null || TestCafeCurrentSetup.Folder.isEmpty()
                 ? this.getEnvironment().getProject().getBasePath()
-                : configuration.options.testCafeFolder;
+                : TestCafeCurrentSetup.Folder;
     }
 
     @Nullable
