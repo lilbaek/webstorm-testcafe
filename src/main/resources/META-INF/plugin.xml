@@ -1,11 +1,26 @@
 <idea-plugin>
     <id>com.lilbaek.webstorm-testcafe</id>
     <name>TestCafe runner for Webstorm</name>
-    <vendor></vendor>
-
+    <vendor url="https://github.com/lilbaek/webstorm-testcafe">Morten Lilbaek</vendor>
+    <version>0.1</version>
     <description><![CDATA[
-    Integration with TestCafe A node.js tool to automate end-to-end web testing
+    Integration with TestCafe A node.js tool to automate end-to-end web testing.
+    Features:<br>
+      <ul>
+        <li>Run a particular test, fixture, all tests in a file or directory via the context menu</li>
+      </ul>
+      <br/>
+    Requirements: <br/>
+    TestCafe should be installed in your project as a local package. To install it, use the npm install testcafe command or add TestCafe to dependencies in your package.json file. Your project should contain TestCafe modules in node_modules\testcafe\....
     ]]></description>
+    <change-notes><![CDATA[
+        Early DRAFT<br>
+        <em>Feedback welcome.</em>
+        <ul>
+        <li><b>0.1.0</b> <em>(06/10/2019)</em> - First version with support for running TestCafe tests
+        </li>
+        </ul>
+   ]]> </change-notes>
 
     <!-- Enable plugin for all products -->
     <depends>com.intellij.modules.lang</depends>

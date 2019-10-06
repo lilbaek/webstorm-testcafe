@@ -67,25 +67,6 @@ public class TestCafeRunConfigurationProducer extends LazyRunConfigurationProduc
 
     @Override
     public boolean isConfigurationFromContext(TestCafeRunConfiguration configuration, ConfigurationContext context) {
-        try {
-            //Check if we are in the same context or if we should create a new configuration - we never really want to do that right now
-            if(context != null && context.getLocation() != null) {
-                Location location = context.getLocation();
-                if(location.getVirtualFile() != null) {
-                    VirtualFile file = location.getVirtualFile();
-                    if(file.isDirectory()) {
-                        return true;
-                    } else {
-                        String content = new String(file.contentsToByteArray());
-                        if (content.toLowerCase().contains("fixture")) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            return false;
-        }
-        return false;
+        return true;
     }
 }
