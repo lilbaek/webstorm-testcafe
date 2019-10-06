@@ -57,11 +57,16 @@ public class TestCafeRunProfileState extends CommandLineState {
         commandLine.withWorkDirectory(basePath);
         commandLine.withRedirectErrorStream(true);
         commandLine.addParameter("node_modules/testcafe/lib/cli/index.js");
-        commandLine.addParameter("chrome");
+        if(configuration.options.browser != null) {
+            commandLine.addParameter(configuration.options.browser);
+        }
         commandLine.addParameter(testFolder);
+        if(configuration.options.testCafeTestName != null && !configuration.options.testCafeTestName.isEmpty()) {
+            commandLine.addParameter("-t");
+            String testName = configuration.options.testCafeTestName.replace("'", "").replace("\"", "");
+            commandLine.addParameter(testName);
+        }
         commandLine.withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE);
-
-
         return new ColoredProcessHandler(commandLine);
     }
 

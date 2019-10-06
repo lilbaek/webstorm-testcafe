@@ -25,6 +25,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
     private JPanel myPanel;
     private ComboBox<String> browserChooser;
     private JTextField testCafeFolder;
+    private JTextField testCafeTestName;
 
     TestCafeSettingsEditor(Project project) {
         browserChooser.addItem("chrome");
@@ -44,17 +45,22 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
     protected void resetEditorFrom(@NotNull TestCafeRunConfiguration configuration) {
         browserChooser.setSelectedItem(configuration.options.browser);
         testCafeFolder.setText(configuration.options.testCafeFolder);
+        testCafeTestName.setText(configuration.options.testCafeTestName);
     }
 
     @Override
     protected void applyEditorTo(@NotNull TestCafeRunConfiguration configuration) {
         String browser = (String) browserChooser.getSelectedItem();
         String folder = (String) testCafeFolder.getText();
+        String testName = (String) testCafeTestName.getText();
         if (folder != null) {
             configuration.options.testCafeFolder = folder;
         }
         if(browser != null) {
             configuration.options.browser = browser;
+        }
+        if(testName != null) {
+            configuration.options.testCafeTestName = testName;
         }
     }
 }

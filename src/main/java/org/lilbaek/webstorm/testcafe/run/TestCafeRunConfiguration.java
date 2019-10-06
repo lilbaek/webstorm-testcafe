@@ -44,6 +44,7 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
 
     static class Options {
         String testCafeFolder;
+        String testCafeTestName;
         String browser;
     }
 
@@ -58,6 +59,9 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
         Element e = new Element(TestCafeRunConfiguration.class.getSimpleName());
         if (options.testCafeFolder != null) {
             e.setAttribute("testcafe-folder", options.testCafeFolder);
+        }
+        if (options.testCafeTestName != null) {
+            e.setAttribute("testcafe-testname", options.testCafeTestName);
         }
         if(options.browser != null) {
             e.setAttribute("testcafe-browser", options.browser);
@@ -74,13 +78,18 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
         if (optionsElement != null) {
             Attribute folder = optionsElement.getAttribute("testcafe-folder");
             Attribute browser = optionsElement.getAttribute("testcafe-browser");
+            Attribute testName = optionsElement.getAttribute("testcafe-testname");
             result.testCafeFolder = null;
             result.browser = null;
+            result.testCafeTestName = null;
             if (folder != null) {
                 result.testCafeFolder = folder.getValue();
             }
             if(browser != null) {
-                result.browser = folder.getValue();
+                result.browser = browser.getValue();
+            }
+            if(testName != null) {
+                result.testCafeTestName = testName.getValue();
             }
         }
         return result;
