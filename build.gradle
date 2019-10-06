@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.lilbaek'
-version '0.1'
+version '0.2'
 
 sourceCompatibility = 1.8
 
@@ -27,6 +27,10 @@ intellij {
 }
 patchPluginXml {
     changeNotes """
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>"""
+      Early DRAFT<br>
+      <em>Feedback welcome.</em>
+      <ul>
+      <li><b>0.2.0</b> - First version with support for running TestCafe tests
+      </li>
+      </ul>"""
 }
