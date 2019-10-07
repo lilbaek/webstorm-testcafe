@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<idea-plugin>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <programRunner implementation="org.lilbaek.webstorm.testcafe.debug.TestCafeDebugProgramRunner"/>
+    </extensions>
+
+</idea-plugin>

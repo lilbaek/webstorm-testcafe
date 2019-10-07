@@ -5,6 +5,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -26,11 +27,22 @@ import org.jetbrains.annotations.SystemIndependent;
 
 public class TestCafeRunProfileState extends CommandLineState {
 
+    private ExecutionEnvironment environment;
     private final TestCafeRunConfiguration configuration;
+    private final TestCafeExecutionType myExecutionType;
 
     TestCafeRunProfileState(ExecutionEnvironment environment, TestCafeRunConfiguration configuration) {
         super(environment);
+        this.environment = environment;
         this.configuration = configuration;
+        myExecutionType = findExecutionType(environment.getExecutor());
+    }
+
+    private TestCafeExecutionType findExecutionType(Executor executor) {
+        if (executor.equals(DefaultDebugExecutor.getDebugExecutorInstance())) {
+            return TestCafeExecutionType.DEBUG;
+        }
+        return TestCafeExecutionType.RUN;
     }
 
     @NotNull
