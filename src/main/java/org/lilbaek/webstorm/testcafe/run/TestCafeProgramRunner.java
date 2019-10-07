@@ -18,6 +18,7 @@ public class TestCafeProgramRunner extends GenericProgramRunner {
     @Nullable
     @Override
     protected RunContentDescriptor doExecute(RunProfileState state, ExecutionEnvironment environment) throws ExecutionException {
+        TestCafeCurrentSetup.IsDebug = false;
         ExecutionResult result = state.execute(environment.getExecutor(), this);
         RunContentDescriptor descriptor = new RunContentBuilder(result, environment).showRunContent(environment.getContentToReuse());
         return withReusePolicy(descriptor);

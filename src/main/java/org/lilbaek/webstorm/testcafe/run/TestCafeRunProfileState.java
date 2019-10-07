@@ -17,6 +17,8 @@ import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
 import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter;
+import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterRef;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -24,6 +26,11 @@ import jetbrains.buildServer.messages.serviceMessages.ServiceMessageVisitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import com.intellij.javascript.nodejs.NodeCommandLineUtil;
+import com.intellij.javascript.nodejs.interpreter.NodeCommandLineConfigurator;
+import com.intellij.javascript.nodejs.util.NodePackage;
+
+import java.util.Collections;
 
 public class TestCafeRunProfileState extends CommandLineState {
 
@@ -74,6 +81,10 @@ public class TestCafeRunProfileState extends CommandLineState {
             commandLine.addParameter("-f");
             String fixtureName = removeIllegalChars(TestCafeCurrentSetup.FixtureName);
             commandLine.addParameter(fixtureName);
+        }
+        if(myExecutionType == TestCafeExecutionType.DEBUG) {
+            NodeJsInterpreter nodeInterpreter = NodeJsInterpreterRef.createProjectRef().resolveNotNull(project);
+            NodeCommandLineUtil.addNodeOptionsForDebugging(commandLine, Collections.emptyList(), 34598, true, nodeInterpreter, true);
         }
         commandLine.withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE);
         return new ColoredProcessHandler(commandLine);
