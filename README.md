@@ -31,3 +31,9 @@ To run all tests in the current file, invoke the context menu for this file.
 To run all test files in a folder, invoke the context menu for this folder.
 
 ![Target](./images/alltests.png)
+
+### Change browser
+
+You can change the browser in the run configuration.
+
+![Configuration](./images/runconfiguration.png)
