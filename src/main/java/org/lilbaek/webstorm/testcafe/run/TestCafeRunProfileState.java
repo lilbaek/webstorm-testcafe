@@ -40,8 +40,8 @@ public class TestCafeRunProfileState extends CommandLineState {
         Project project = getEnvironment().getProject();
         String basePath = project.getBasePath();
 
-        TestCafeGeneralCommandLine commandLine = new TestCafeGeneralCommandLine();
-        commandLine.setExePath("node.exe");
+        GeneralCommandLine commandLine = new GeneralCommandLine();
+        commandLine.setExePath("node");
 
         @SystemIndependent
         String testFolder = getTestFolder();
