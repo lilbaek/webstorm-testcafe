@@ -1,6 +1,6 @@
 # TestCafe runner for Webstorm
 
-Integration with[TestCafe](https://devexpress.github.io/testcafe/) TestCafe A node.js tool to automate end-to-end web testing. 
+Integration with [TestCafe](https://devexpress.github.io/testcafe/) TestCafe A node.js tool to automate end-to-end web testing. 
 This plugin allows you to run TestCafe tests directly from Webstorm.
 
 * Run a particular test, fixture, all tests in a file or directory via the context menu
@@ -31,3 +31,9 @@ To run all tests in the current file, invoke the context menu for this file.
 To run all test files in a folder, invoke the context menu for this folder.
 
 ![Target](./images/alltests.png)
+
+### Change browser
+
+You can change the browser in the run configuration.
+
+![Configuration](./images/runconfiguration.png)
