@@ -10,6 +10,7 @@ public class TestCafeRunConfigurationType extends SimpleConfigurationType {
 
     public TestCafeRunConfigurationType() {
         super("JavaScriptTestRunnerTestCafe", "TestCafe", "TestCafe", NotNullLazyValue.createValue(() -> IconLoader.getIcon("/icons/testcafe-symbol.png")));
+
     }
 
     @NotNull

@@ -1,10 +1,13 @@
 package org.lilbaek.webstorm.testcafe.run;
 
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.LocatableConfigurationBase;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.javascript.nodejs.debug.NodeDebugRunConfiguration;
+import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterRef;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
@@ -17,13 +20,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCafeRunProfileState> {
+public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCafeRunProfileState> implements NodeDebugRunConfiguration {
 
     Options options = new Options();
+    private NodeJsInterpreterRef myInterpreterRef;
 
     TestCafeRunConfiguration(Project project, ConfigurationFactory factory, String name) {
         super(project, factory, name);
         options.browser = "chrome";
+        this.myInterpreterRef = NodeJsInterpreterRef.createProjectRef();
     }
 
     @NotNull
@@ -52,6 +57,17 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
         return IconLoader.getIcon("/icons/testcafe-symbol.png");
     }
 
+
+    @NotNull
+    public NodeJsInterpreterRef getInterpreterRef() {
+        final NodeJsInterpreterRef myInterpreterRef = this.myInterpreterRef;
+        return myInterpreterRef;
+    }
+
+    @NotNull
+    public void setInterpreterRef(@NotNull final NodeJsInterpreterRef interpreterRef) {
+        this.myInterpreterRef = interpreterRef;
+    }
 
     static void writeOptions(Options options, Element element) {
         Element e = new Element(TestCafeRunConfiguration.class.getSimpleName());

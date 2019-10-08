@@ -16,7 +16,7 @@ intellij {
     alternativeIdePath = "C:\\Program Files\\JetBrains\\WebStorm 2019.2.3\\"
     type 'IU'
     version '2019.2.3'
-    plugins = ['JavaScriptLanguage', 'JavaScriptDebugger']
+    plugins = ['JavaScriptLanguage', 'JavaScriptDebugger', 'NodeJS']
 }
 
 dependencies {

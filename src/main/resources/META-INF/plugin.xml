@@ -17,11 +17,10 @@
     <!-- This enables the PSI capability for JavaScript -->
     <depends>JavaScript</depends>
     <depends>JavaScriptDebugger</depends>
+    <depends>NodeJS</depends>
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
         <configurationType implementation="org.lilbaek.webstorm.testcafe.run.TestCafeRunConfigurationType"/>
-        <programRunner implementation="org.lilbaek.webstorm.testcafe.run.TestCafeProgramRunner"/>
-        <!--<programRunner implementation="org.lilbaek.webstorm.testcafe.debug.TestCafeProgramDebugRunner"/>-->
        <runConfigurationProducer implementation="org.lilbaek.webstorm.testcafe.run.TestCafeRunConfigurationProducer"/>
    </extensions>
 
