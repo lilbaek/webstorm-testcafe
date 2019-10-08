@@ -1,48 +1,46 @@
 package org.lilbaek.webstorm.testcafe.run;
 
+import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.process.ColoredProcessHandler;
-import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.filters.TextConsoleBuilder;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.testframework.TestConsoleProperties;
-import com.intellij.execution.testframework.sm.SMCustomMessagesParsing;
-import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
-import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter;
-import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
-import com.intellij.execution.testframework.sm.runner.SMTestLocator;
-import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView;
 import com.intellij.execution.ui.ConsoleView;
+import com.intellij.javascript.nodejs.NodeCommandLineUtil;
+import com.intellij.javascript.nodejs.debug.NodeLocalDebugRunProfileState;
+import com.intellij.javascript.nodejs.interpreter.NodeCommandLineConfigurator;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterRef;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import jetbrains.buildServer.messages.serviceMessages.ServiceMessageVisitor;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.GlobalSearchScopes;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
-import com.intellij.javascript.nodejs.NodeCommandLineUtil;
-import com.intellij.javascript.nodejs.interpreter.NodeCommandLineConfigurator;
-import com.intellij.javascript.nodejs.util.NodePackage;
 
 import java.util.Collections;
 
-public class TestCafeRunProfileState extends CommandLineState {
+public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugRunProfileState {
 
     private ExecutionEnvironment environment;
     private final TestCafeRunConfiguration configuration;
     private final TestCafeExecutionType myExecutionType;
+    private TextConsoleBuilder myConsoleBuilder;
 
     TestCafeRunProfileState(ExecutionEnvironment environment, TestCafeRunConfiguration configuration) {
-        super(environment);
+        super();
         this.environment = environment;
         this.configuration = configuration;
         myExecutionType = findExecutionType(environment.getExecutor());
+        final Project project = environment.getProject();
+        final GlobalSearchScope searchScope = GlobalSearchScopes.executionScope(project, environment.getRunProfile());
+        myConsoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(project, searchScope);
     }
 
     private TestCafeExecutionType findExecutionType(Executor executor) {
@@ -54,14 +52,25 @@ public class TestCafeRunProfileState extends CommandLineState {
 
     @NotNull
     @Override
-    protected ProcessHandler startProcess() throws ExecutionException {
-        FileDocumentManager.getInstance().saveAllDocuments();
-        Project project = getEnvironment().getProject();
+    public ExecutionResult execute(int debugPort) throws ExecutionException {
+        NodeJsInterpreter interpreter = NodeJsInterpreterRef.createProjectRef().resolveNotNull(environment.getProject());
+        GeneralCommandLine commandLine = this.createCommandLine(interpreter, debugPort);
+        NodeCommandLineConfigurator.find(interpreter).configure(commandLine);
+        OSProcessHandler processHandler = NodeCommandLineUtil.createProcessHandler(commandLine, false);
+
+        final ConsoleView console = myConsoleBuilder.getConsole();
+        console.attachToProcess(processHandler);
+
+        return new DefaultExecutionResult(console, processHandler);
+    }
+
+
+    @NotNull
+    private GeneralCommandLine createCommandLine(NodeJsInterpreter interpreter, int debugPort) throws ExecutionException {
+        GeneralCommandLine commandLine = NodeCommandLineUtil.createCommandLine(SystemInfo.isWindows ? false : null);
+        Project project = environment.getProject();
         String basePath = project.getBasePath();
-
-        GeneralCommandLine commandLine = new GeneralCommandLine();
         commandLine.setExePath("node");
-
         @SystemIndependent
         String testFolder = getTestFolder();
 
@@ -83,11 +92,10 @@ public class TestCafeRunProfileState extends CommandLineState {
             commandLine.addParameter(fixtureName);
         }
         if(myExecutionType == TestCafeExecutionType.DEBUG) {
-            NodeJsInterpreter nodeInterpreter = NodeJsInterpreterRef.createProjectRef().resolveNotNull(project);
-            NodeCommandLineUtil.addNodeOptionsForDebugging(commandLine, Collections.emptyList(), 34598, true, nodeInterpreter, true);
+            NodeCommandLineUtil.addNodeOptionsForDebugging(commandLine, Collections.emptyList(), debugPort, true, interpreter, true);
         }
         commandLine.withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE);
-        return new ColoredProcessHandler(commandLine);
+        return commandLine;
     }
 
     private String removeIllegalChars(String str) {
@@ -97,14 +105,15 @@ public class TestCafeRunProfileState extends CommandLineState {
     @SystemIndependent
     private String getTestFolder() {
         return TestCafeCurrentSetup.Folder == null || TestCafeCurrentSetup.Folder.isEmpty()
-                ? this.getEnvironment().getProject().getBasePath()
+                ? this.environment.getProject().getBasePath()
                 : TestCafeCurrentSetup.Folder;
     }
 
+    /*
     @Nullable
     @Override
     protected ConsoleView createConsole(@NotNull Executor executor) {
-        RunConfiguration runConfiguration = (RunConfiguration) this.getEnvironment().getRunProfile();
+        RunConfiguration runConfiguration = (RunConfiguration) this.environment.getRunProfile();
         SMTRunnerConsoleProperties properties = new ConsoleProperties(runConfiguration, executor);
         SMTRunnerConsoleView consoleView = new SMTRunnerConsoleView(properties);
         SMTestRunnerConnectionUtil.initConsoleView(consoleView, properties.getTestFrameworkName());
@@ -145,5 +154,5 @@ public class TestCafeRunProfileState extends CommandLineState {
                 }
             };
         }
-    }
+    }*/
 }

@@ -21,11 +21,11 @@
         <!-- Add your extensions here -->
         <configurationType implementation="org.lilbaek.webstorm.testcafe.run.TestCafeRunConfigurationType"/>
         <programRunner implementation="org.lilbaek.webstorm.testcafe.run.TestCafeProgramRunner"/>
-        <programRunner implementation="org.lilbaek.webstorm.testcafe.debug.TestCafeProgramDebugRunner"/>
-        <runConfigurationProducer implementation="org.lilbaek.webstorm.testcafe.run.TestCafeRunConfigurationProducer"/>
-    </extensions>
+        <!--<programRunner implementation="org.lilbaek.webstorm.testcafe.debug.TestCafeProgramDebugRunner"/>-->
+       <runConfigurationProducer implementation="org.lilbaek.webstorm.testcafe.run.TestCafeRunConfigurationProducer"/>
+   </extensions>
 
-    <actions>
-        <!-- Add your actions here -->
+   <actions>
+       <!-- Add your actions here -->
     </actions>
 </idea-plugin>
