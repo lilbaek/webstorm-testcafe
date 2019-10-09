@@ -21,8 +21,6 @@ import org.lilbaek.webstorm.testcafe.helpers.testcafe.result.TestCafeTest;
 
 public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralTestEventsConverter {
 
-    @NotNull
-    private OutputEventSplitter splitter;
     private ExecutionEnvironment myEnvironment;
     private TestCafeUiSession myTestCafeUiSession;
 
@@ -30,12 +28,6 @@ public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralT
         super(testFrameworkName, consoleProperties);
         myTestCafeUiSession = testCafeUiSession;
         myEnvironment = environment;
-        splitter = new OutputEventSplitter() {
-            @Override
-            public void onTextAvailable(@NotNull String text, @NotNull Key outputType) {
-                processConsistentText(text, outputType);
-            }
-        };
     }
 
     @Override
@@ -45,7 +37,7 @@ public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralT
             TestCafeJson testResults = myTestCafeUiSession.getTestResultFinderStrategy().findTestResults();
             if(testResults == null) {
                 NotificationGroup group = NotificationGroup.balloonGroup("TestCafe Plugin - test error");
-                Notification notification = group.createNotification("Test runtime terminated without providing any result", NotificationType.ERROR);
+                Notification notification = group.createNotification("TestCafe terminated without providing any result", NotificationType.ERROR);
                 Notifications.Bus.notify(notification, myEnvironment.getProject());
             } else {
                 processAllTestResults(testResults);
@@ -68,8 +60,7 @@ public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralT
     private void processTestFixture(TestCafeFixture testCafeFixture) {
         GeneralTestEventsProcessor processor = getProcessor();
         TestSuiteStarted suiteStarted = new TestSuiteStarted(testCafeFixture.Name);
-        //TODO: Send in location URL
-        processor.onSuiteStarted(new TestSuiteStartedEvent(suiteStarted, null));
+        processor.onSuiteStarted(new TestSuiteStartedEvent(suiteStarted, testCafeFixture.Path));
         for (TestCafeTest test : testCafeFixture.Tests) {
             processTestCase(processor, testCafeFixture, test);
         }
@@ -77,8 +68,7 @@ public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralT
     }
 
     private void processTestCase(GeneralTestEventsProcessor processor, TestCafeFixture testCafeFixture, TestCafeTest test) {
-        //TODO: Send in location URL
-        processor.onTestStarted(new TestStartedEvent(test.Name, null));
+        processor.onTestStarted(new TestStartedEvent(test.Name, testCafeFixture.Path));
         if(test.Skipped) {
             processor.onTestIgnored(new TestIgnoredEvent(test.Name, "Ignored", null));
         } else if(test.Errors.size() != 0) {
@@ -99,16 +89,6 @@ public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralT
             }
         }
         processor.onTestFinished(new TestFinishedEvent(test.Name, test.Duration));
-    }
-
-    @Override
-    public void processConsistentText(@NotNull String text, @NotNull Key outputType) {
-        super.processConsistentText(text, outputType);
-    }
-
-    @Override
-    public synchronized void finishTesting() {
-        super.finishTesting();
     }
 
     private boolean started = false;
