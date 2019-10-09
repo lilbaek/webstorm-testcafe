@@ -3,7 +3,6 @@ package org.lilbaek.webstorm.testcafe.run;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestConsoleProperties;
 import com.intellij.execution.testframework.sm.runner.GeneralTestEventsProcessor;
-import com.intellij.execution.testframework.sm.runner.OutputEventSplitter;
 import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter;
 import com.intellij.execution.testframework.sm.runner.events.*;
 import com.intellij.notification.Notification;
@@ -42,19 +41,15 @@ public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralT
             } else {
                 processAllTestResults(testResults);
             }
-
         }
     }
 
     private void processAllTestResults(TestCafeJson testResults) {
-        try {
+
             onStartTesting();
             getProcessor().onTestsReporterAttached();
             testResults.Fixtures.forEach(this::processTestFixture);
-        } finally {
-            //Cleanup
-            myTestCafeUiSession.getTestResultFinderStrategy().deleteTemporaryOutputFiles();
-        }
+
     }
 
     private void processTestFixture(TestCafeFixture testCafeFixture) {

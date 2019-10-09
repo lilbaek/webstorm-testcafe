@@ -10,7 +10,4 @@ public interface TestCafeTestResultFinderStrategy {
      */
     @Nullable
     TestCafeJson findTestResults();
-
-    /** Remove any temporary files used by this result finder. */
-    void deleteTemporaryOutputFiles();
 }

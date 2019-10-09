@@ -113,6 +113,7 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
                 commandLine.addParameter(arg);
             }
         }
+        //Make sure we get colors in the console from nodeJs
         commandLine.addParameter("--color");
         return NodeCommandLineUtil.createProcessHandler(commandLine, false);
     }

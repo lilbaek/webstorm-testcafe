@@ -28,15 +28,11 @@ public class TestCafeTestFinderStrategy implements TestCafeTestResultFinderStrat
         } catch (IOException e) {
             logger.warn(e);
         } finally {
+            //Cleanup
             if (!outputFile.delete()) {
                 logger.warn("Could not delete output file: " + outputFile);
             }
         }
         return null;
-    }
-
-    @Override
-    public void deleteTemporaryOutputFiles() {
-
     }
 }
