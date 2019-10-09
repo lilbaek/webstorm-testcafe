@@ -24,11 +24,9 @@ dependencies {
 }
 
 patchPluginXml {
-    changeNotes """
-      Early DRAFT<br>
-      <em>Feedback welcome.</em>
+    changeNotes """      
       <ul>
-      <li><b>0.5.0</b> - It is now possible to debug test scripts + support for console colors
+      <li><b>0.5.0</b> <br/> Added the option to debug test scripts<br/> Now shows test results in Webstorm<br/>Support for console colors  
       <li><b>0.4.0</b> - Added support for macOS 
       <li><b>0.3.0</b> - Support for targeting a specific fixture
       <li><b>0.2.0</b> - First version with support for running TestCafe tests

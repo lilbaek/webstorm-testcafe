@@ -5,7 +5,7 @@ This plugin allows you to run TestCafe tests directly from Webstorm.
 
 * Run a specific test, fixture, all tests in a file or directory via the context menu
 * Debug a specific test, fixture, all tests in a file or directory via the context menu
-* View test results in the 'Run Console'
+* View test results in the run window
 
 ## Requirements
 
@@ -37,4 +37,8 @@ To run/debug all tests in the current file, invoke the context menu for this fil
 
 To run all test files in a folder, invoke the context menu for this folder.
 
-![All](./images/alltests.png)
+### Tests results
+
+The test results are shown in the run window
+
+![All](./images/results.png)
