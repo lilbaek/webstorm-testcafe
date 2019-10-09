@@ -4,6 +4,10 @@ import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.actions.LazyRunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.lang.javascript.psi.JSExpressionStatement;
+import com.intellij.lang.javascript.psi.JSLiteralExpression;
+import com.intellij.lang.javascript.psi.JSReferenceExpression;
+import com.intellij.lang.javascript.psi.ecma6.TypeScriptFunctionExpression;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -57,16 +61,35 @@ public class TestCafeRunConfigurationProducer extends LazyRunConfigurationProduc
             if(element.getNode() != null) {
                 IElementType type = element.getNode().getElementType();
                 String typeAsString = type.toString();
-                //Potential specific test
-                if (typeAsString.equals("JS:STRING_LITERAL")) {
+
+                //Lets check if we can find a test by searching up in our tree
+                    /*
+                    JSCallExpression
+                        JSReferenceExpression
+                            JSIdentifier (Test identifier)
+                        JSAugmentList
+                            xxx
+                            xxx
+                                JStringLiteral (Test Name)
+                        FunctionExpression ->
+                            Test code
+                     */
+                PsiElement parentTestElement = PsiTreeUtil.findFirstParent(element, psiElement -> psiElement.getText().toLowerCase().startsWith("test"));
+                if(parentTestElement != null) {
+                    //Lets find first child of type STRING_LITERAL that should give use the name of the test
+                    PsiElement textElement = PsiTreeUtil.findChildOfType(parentTestElement, JSLiteralExpression.class, true, TypeScriptFunctionExpression.class);
+                    if(textElement != null) {
+                        TestCafeCurrentSetup.TestName = removeIllegalChars(textElement.getText());
+                    }
+                } else if (typeAsString.equals("JS:STRING_LITERAL")) {
+                    //Check if we are targeting a text string that we can use for testing. Might give false positive but it is better than nothing
                     PsiElement testElement = PsiTreeUtil.findFirstParent(element, psiElement -> psiElement.getText().toLowerCase().startsWith("test"));
                     if(testElement != null) {
                         TestCafeCurrentSetup.TestName = removeIllegalChars(element.getText());
                     }
                 }
-                //Potential test fixture
-                if (typeAsString.equals("JS:STRING_TEMPLATE_PART")) {
-                    //Check if we can get a fixture name instead
+                else if (typeAsString.equals("JS:STRING_TEMPLATE_PART")) {
+                    //Check if we can get a fixture name instead. Might give false positive but it is better than nothing.
                     PsiElement fixtureElement = PsiTreeUtil.findFirstParent(element, psiElement -> psiElement.getText().toLowerCase().startsWith("fixture"));
                     if(fixtureElement != null) {
                         TestCafeCurrentSetup.FixtureName = removeIllegalChars(element.getText());

@@ -19,7 +19,7 @@ You can change the browser in the run configuration.
 
 ### Running/debugging a specific test
 
-To run/debug a specific test, invoke the context menu when the cursor is placed on the test name.
+To run/debug a specific test, invoke the context menu when the cursor is placed inside the test body
 
 ![Specific](./images/onetest.png)
 
@@ -31,7 +31,7 @@ To run/debug all tests in a test fixture, invoke the context menu when the curso
 
 ### Running all/debugging tests in a file
 
-To run/debug all tests in the current file, invoke the context menu for this file.
+To run/debug all tests in the current file, invoke the context menu for the file outside of a test body.
 
 ### Running all tests in a folder
 
