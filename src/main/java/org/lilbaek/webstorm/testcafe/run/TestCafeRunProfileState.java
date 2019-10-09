@@ -79,17 +79,17 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
     }
 
     private ConsoleView createConsole(@NotNull final ProcessHandler processHandler, @NotNull final ExecutionEnvironment env, @NotNull final SMTestLocator locator) {
-        /* Removed until I figure out how to probably color the console data / read the test results.
+        /* Removed until I figure out how to probably color the console data / read the test results. */
         RunConfiguration runConfiguration = (RunConfiguration) env.getRunProfile();
         SMTRunnerConsoleProperties consoleProperties = new ConsoleProperties(runConfiguration, env.getExecutor(), locator);
         final ConsoleView testsOutputConsoleView = SMTestRunnerConnectionUtil.createConsole(consoleProperties);
         testsOutputConsoleView.attachToProcess(processHandler);
         Disposer.register(env.getProject(), testsOutputConsoleView);
-        return testsOutputConsoleView;*/
-        final ConsoleView console = myConsoleBuilder.getConsole();
-        console.attachToProcess(processHandler);
-        Disposer.register(env.getProject(), console);
-        return console;
+        return testsOutputConsoleView;
+        //final ConsoleView console = myConsoleBuilder.getConsole();
+        //console.attachToProcess(processHandler);
+        //Disposer.register(env.getProject(), console);
+        //return console;
     }
 
     @NotNull
@@ -121,6 +121,7 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
             String fixtureName = removeIllegalChars(TestCafeCurrentSetup.FixtureName);
             commandLine.addParameter(fixtureName);
         }
+        commandLine.addParameter("--color");
         return NodeCommandLineUtil.createProcessHandler(commandLine, false);
     }
 
@@ -155,20 +156,10 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
             return this.myLocator;
         }
 
+
         @Override
         public OutputToGeneralTestEventsConverter createTestEventsConverter(@NotNull String testFrameworkName, @NotNull TestConsoleProperties consoleProperties) {
-            return new OutputToGeneralTestEventsConverter(testFrameworkName, consoleProperties) {
-
-                @Override
-                public synchronized void finishTesting() {
-                    super.finishTesting();
-                }
-
-                @Override
-                protected boolean processServiceMessages(String text, Key outputType, ServiceMessageVisitor visitor) {
-                    return false;
-                }
-            };
+            return new TestCafeOutputToGeneralTestEventsConverter(testFrameworkName, consoleProperties);
         }
     }
 }
