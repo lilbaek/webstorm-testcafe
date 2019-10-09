@@ -29,7 +29,7 @@ To run/debug all tests in a test fixture, invoke the context menu when the curso
 
 ![Fixture](./images/onefixture.png)
 
-### Running all/debugging tests in a file
+### Running/debugging all tests in a file
 
 To run/debug all tests in the current file, invoke the context menu for the file outside of a test body.
 
