@@ -21,13 +21,13 @@ You can change the browser in the run configuration.
 
 To run/debug a specific test, invoke the context menu when the cursor is placed on the test name.
 
-![Specific](./images/specific.png)
+![Specific](./images/onetest.png)
 
 ### Running/debugging all tests in a fixture
 
 To run/debug all tests in a test fixture, invoke the context menu when the cursor is placed on the fixture name.
 
-![Fixture](./images/fixture.png)
+![Fixture](./images/onefixture.png)
 
 ### Running all/debugging tests in a file
 
