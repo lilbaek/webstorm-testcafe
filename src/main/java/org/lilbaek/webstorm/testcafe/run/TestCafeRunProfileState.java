@@ -7,10 +7,6 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.filters.TextConsoleBuilder;
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
-import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -29,16 +25,12 @@ import com.intellij.javascript.nodejs.debug.NodeLocalDebugRunProfileState;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter;
 import com.intellij.javascript.nodejs.interpreter.local.NodeJsLocalInterpreter;
 import com.intellij.notification.*;
-import com.intellij.openapi.options.colors.pages.ANSIColoredConsoleColorsPage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.GlobalSearchScopes;
-import jetbrains.buildServer.messages.serviceMessages.ServiceMessageVisitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.SystemIndependent;
+import org.lilbaek.webstorm.testcafe.helpers.TestCafeUiSession;
+import org.lilbaek.webstorm.testcafe.helpers.TestUiSessionProvider;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -48,14 +40,14 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
 
     private ExecutionEnvironment myEnvironment;
     private final TestCafeRunConfiguration myConfiguration;
-    private TextConsoleBuilder myConsoleBuilder;
+    private TestCafeUiSession myTestCafeUiSession;
+
     TestCafeRunProfileState(ExecutionEnvironment environment, TestCafeRunConfiguration configuration) {
         super();
         myEnvironment = environment;
         myConfiguration = configuration;
         Project project = environment.getProject();
-        GlobalSearchScope searchScope = GlobalSearchScopes.executionScope(project, environment.getRunProfile());
-        myConsoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(project, searchScope);
+        myTestCafeUiSession = TestUiSessionProvider.getInstance(project).getTestUiSession();
     }
 
     @NotNull
@@ -78,22 +70,17 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         return executionResult;
     }
 
-    private ConsoleView createConsole(@NotNull final ProcessHandler processHandler, @NotNull final ExecutionEnvironment env, @NotNull final SMTestLocator locator) {
-        /* Removed until I figure out how to probably color the console data / read the test results. */
+    private ConsoleView createConsole(@NotNull ProcessHandler processHandler, @NotNull ExecutionEnvironment env, @NotNull SMTestLocator locator) {
         RunConfiguration runConfiguration = (RunConfiguration) env.getRunProfile();
-        SMTRunnerConsoleProperties consoleProperties = new ConsoleProperties(runConfiguration, env.getExecutor(), locator);
+        SMTRunnerConsoleProperties consoleProperties = new ConsoleProperties(env, runConfiguration, env.getExecutor(), locator, myTestCafeUiSession);
         final ConsoleView testsOutputConsoleView = SMTestRunnerConnectionUtil.createConsole(consoleProperties);
         testsOutputConsoleView.attachToProcess(processHandler);
         Disposer.register(env.getProject(), testsOutputConsoleView);
         return testsOutputConsoleView;
-        //final ConsoleView console = myConsoleBuilder.getConsole();
-        //console.attachToProcess(processHandler);
-        //Disposer.register(env.getProject(), console);
-        //return console;
     }
 
     @NotNull
-    private ProcessHandler startProcess(@NotNull final NodeJsLocalInterpreter interpreter, final int debugPort) throws ExecutionException {
+    private ProcessHandler startProcess(@NotNull NodeJsLocalInterpreter interpreter, int debugPort) throws ExecutionException {
         Project project = myEnvironment.getProject();
         final GeneralCommandLine commandLine = new GeneralCommandLine();
         commandLine.withCharset(StandardCharsets.UTF_8);
@@ -121,6 +108,11 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
             String fixtureName = removeIllegalChars(TestCafeCurrentSetup.FixtureName);
             commandLine.addParameter(fixtureName);
         }
+        if(myTestCafeUiSession != null) {
+            for (String arg : myTestCafeUiSession.getCommandLineArguments()) {
+                commandLine.addParameter(arg);
+            }
+        }
         commandLine.addParameter("--color");
         return NodeCommandLineUtil.createProcessHandler(commandLine, false);
     }
@@ -138,28 +130,30 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
 
     private static class ConsoleProperties extends SMTRunnerConsoleProperties implements SMCustomMessagesParsing {
         private final SMTestLocator myLocator;
-        ConsoleProperties(@NotNull RunConfiguration config, @NotNull Executor executor, @NotNull SMTestLocator locator) {
+        private TestCafeUiSession myTestCafeUiSession;
+        private ExecutionEnvironment myEnvironment;
+        ConsoleProperties(@NotNull ExecutionEnvironment environment, @NotNull RunConfiguration config, @NotNull Executor executor, @NotNull SMTestLocator locator, TestCafeUiSession testCafeUiSession) {
             super(config, "TestCafe", executor);
-
             setIfUndefined(TestConsoleProperties.TRACK_RUNNING_TEST, false);
             setIfUndefined(TestConsoleProperties.OPEN_FAILURE_LINE, false);
             setIfUndefined(TestConsoleProperties.HIDE_PASSED_TESTS, false);
             setIfUndefined(TestConsoleProperties.SHOW_STATISTICS, false);
             setIfUndefined(TestConsoleProperties.SELECT_FIRST_DEFECT, false);
             setIfUndefined(TestConsoleProperties.SCROLL_TO_SOURCE, false);
-            this.myLocator = locator;
-        }
+            myLocator = locator;
+            myTestCafeUiSession = testCafeUiSession;
+            myEnvironment = environment;}
 
         @Nullable
         @Override
         public SMTestLocator getTestLocator() {
-            return this.myLocator;
+            return myLocator;
         }
 
 
         @Override
         public OutputToGeneralTestEventsConverter createTestEventsConverter(@NotNull String testFrameworkName, @NotNull TestConsoleProperties consoleProperties) {
-            return new TestCafeOutputToGeneralTestEventsConverter(testFrameworkName, consoleProperties);
+            return new TestCafeOutputToGeneralTestEventsConverter(myEnvironment, testFrameworkName, consoleProperties, myTestCafeUiSession);
         }
     }
 }
