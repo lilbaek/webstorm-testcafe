@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.lilbaek'
-version '0.6'
+version '0.7'
 
 sourceCompatibility = 1.8
 repositories {
@@ -26,6 +26,7 @@ dependencies {
 patchPluginXml {
     changeNotes """      
       <ul>
+      <li><b>0.7.0</b> Added support for TestCafe "Live Mode"
       <li><b>0.6.0</b> Added support for starting a specific test by right-clicking inside a test body  
       <li><b>0.5.0</b> <br/> Added the option to debug test scripts<br/> Now shows test results in Webstorm<br/>Support for console colors  
       <li><b>0.4.0</b> - Added support for macOS 

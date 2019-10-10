@@ -24,6 +24,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
 
     private JPanel myPanel;
     private ComboBox<String> browserChooser;
+    private JCheckBox checkBoxLiveMode;
 
     TestCafeSettingsEditor(Project project) {
         browserChooser.addItem("chrome");
@@ -42,6 +43,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
     @Override
     protected void resetEditorFrom(@NotNull TestCafeRunConfiguration configuration) {
         browserChooser.setSelectedItem(configuration.options.browser);
+        checkBoxLiveMode.setSelected(configuration.options.liveMode);
     }
 
     @Override
@@ -50,5 +52,6 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
         if(browser != null) {
             configuration.options.browser = browser;
         }
+        configuration.options.liveMode = checkBoxLiveMode.isSelected();
     }
 }

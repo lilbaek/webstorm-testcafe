@@ -48,6 +48,7 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
     }
 
     static class Options {
+        boolean liveMode;
         String browser;
     }
 
@@ -74,6 +75,7 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
         if(options.browser != null) {
             e.setAttribute("testcafe-browser", options.browser);
         }
+        e.setAttribute("testcafe-live-mode", String.valueOf(options.liveMode));
         element.addContent(e);
     }
 
@@ -85,9 +87,13 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
 
         if (optionsElement != null) {
             Attribute browser = optionsElement.getAttribute("testcafe-browser");
+            Attribute liveMode = optionsElement.getAttribute("testcafe-live-mode");
             result.browser = null;
             if(browser != null) {
                 result.browser = browser.getValue();
+            }
+            if(liveMode != null) {
+                result.liveMode = Boolean.parseBoolean(liveMode.getValue());
             }
         }
         return result;

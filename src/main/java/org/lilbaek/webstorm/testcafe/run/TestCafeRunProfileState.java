@@ -102,6 +102,9 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
             commandLine.addParameter("-t");
             String testName = removeIllegalChars(TestCafeCurrentSetup.TestName);
             commandLine.addParameter(testName);
+            if(myConfiguration.options.liveMode) {
+                commandLine.addParameter("-L");
+            }
         }
         if(TestCafeCurrentSetup.FixtureName != null && !TestCafeCurrentSetup.FixtureName.isEmpty()) {
             commandLine.addParameter("-f");
