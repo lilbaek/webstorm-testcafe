@@ -7,6 +7,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -24,7 +25,11 @@ import com.intellij.javascript.nodejs.NodeStackTraceFilter;
 import com.intellij.javascript.nodejs.debug.NodeLocalDebugRunProfileState;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter;
 import com.intellij.javascript.nodejs.interpreter.local.NodeJsLocalInterpreter;
-import com.intellij.notification.*;
+import com.intellij.lang.javascript.buildTools.TypeScriptErrorConsoleFilter;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +51,6 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         super();
         myEnvironment = environment;
         myConfiguration = configuration;
-        Project project = environment.getProject();
-        myTestCafeUiSession = TestUiSessionProvider.getInstance(project).getTestUiSession();
     }
 
     @NotNull
@@ -62,20 +65,30 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         String basePath = project.getBasePath();
 
         final File workingDir = new File(basePath);
-        final ConsoleView consoleView = createConsole(processHandler, this.myEnvironment, new TestCafeTestLocationProvider(workingDir));
+        final ConsoleView consoleView;
+        if (isLiveMode()) {
+            consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
+            processHandler.startNotify();
+            consoleView.attachToProcess(processHandler);
+        } else {
+            consoleView = createTestConsoleView(processHandler, this.myEnvironment, new TestCafeTestLocationProvider(workingDir));
+        }
         consoleView.addMessageFilter(new NodeStackTraceFilter(project, workingDir));
         consoleView.addMessageFilter(new NodeConsoleAdditionalFilter(project, workingDir));
+        consoleView.addMessageFilter(new TypeScriptErrorConsoleFilter(project, workingDir));
+
         final DefaultExecutionResult executionResult = new DefaultExecutionResult(consoleView, processHandler);
         executionResult.setRestartActions(new ToggleAutoTestAction());
         return executionResult;
     }
 
-    private ConsoleView createConsole(@NotNull ProcessHandler processHandler, @NotNull ExecutionEnvironment env, @NotNull SMTestLocator locator) {
+    private ConsoleView createTestConsoleView(@NotNull ProcessHandler processHandler, @NotNull ExecutionEnvironment env, @NotNull SMTestLocator locator) {
         RunConfiguration runConfiguration = (RunConfiguration) env.getRunProfile();
         SMTRunnerConsoleProperties consoleProperties = new ConsoleProperties(env, runConfiguration, env.getExecutor(), locator, myTestCafeUiSession);
         final ConsoleView testsOutputConsoleView = SMTestRunnerConnectionUtil.createConsole(consoleProperties);
         testsOutputConsoleView.attachToProcess(processHandler);
         Disposer.register(env.getProject(), testsOutputConsoleView);
+
         return testsOutputConsoleView;
     }
 
@@ -102,23 +115,29 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
             commandLine.addParameter("-t");
             String testName = removeIllegalChars(TestCafeCurrentSetup.TestName);
             commandLine.addParameter(testName);
-            if(myConfiguration.options.liveMode) {
-                commandLine.addParameter("-L");
-            }
         }
         if(TestCafeCurrentSetup.FixtureName != null && !TestCafeCurrentSetup.FixtureName.isEmpty()) {
             commandLine.addParameter("-f");
             String fixtureName = removeIllegalChars(TestCafeCurrentSetup.FixtureName);
             commandLine.addParameter(fixtureName);
         }
-        if(myTestCafeUiSession != null) {
-            for (String arg : myTestCafeUiSession.getCommandLineArguments()) {
-                commandLine.addParameter(arg);
+        if (isLiveMode()) {
+            commandLine.addParameter("-L");
+        } else {
+            myTestCafeUiSession = TestUiSessionProvider.getInstance(project).getTestUiSession();
+            if (myTestCafeUiSession != null) {
+                for (String arg : myTestCafeUiSession.getCommandLineArguments()) {
+                    commandLine.addParameter(arg);
+                }
             }
         }
         //Make sure we get colors in the console from nodeJs
         commandLine.addParameter("--color");
         return NodeCommandLineUtil.createProcessHandler(commandLine, false);
+    }
+
+    private boolean isLiveMode() {
+        return TestCafeCurrentSetup.TestName != null && !TestCafeCurrentSetup.TestName.isEmpty() && myConfiguration.options.liveMode;
     }
 
     private ProcessHandler handleBadConfiguration(String errorMessage) throws ExecutionException {
