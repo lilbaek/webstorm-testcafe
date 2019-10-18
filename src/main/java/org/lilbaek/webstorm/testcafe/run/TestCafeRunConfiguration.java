@@ -41,6 +41,10 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
     public void checkConfiguration() {
     }
 
+    public boolean isLiveMode() {
+        return TestCafeCurrentSetup.TestName != null && !TestCafeCurrentSetup.TestName.isEmpty() && options.liveMode;
+    }
+
     @Nullable
     @Override
     public TestCafeRunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment executionEnvironment) {

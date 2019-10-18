@@ -21,12 +21,14 @@ import org.lilbaek.webstorm.testcafe.helpers.testcafe.result.TestCafeTest;
 public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralTestEventsConverter {
 
     private ExecutionEnvironment myEnvironment;
+    private TestCafeRunConfiguration myConfiguration;
     private TestCafeUiSession myTestCafeUiSession;
 
-    TestCafeOutputToGeneralTestEventsConverter(@NotNull ExecutionEnvironment environment, @NotNull String testFrameworkName, @NotNull TestConsoleProperties consoleProperties, TestCafeUiSession testCafeUiSession) {
+    TestCafeOutputToGeneralTestEventsConverter(@NotNull ExecutionEnvironment environment, @NotNull String testFrameworkName, @NotNull TestConsoleProperties consoleProperties, TestCafeUiSession testCafeUiSession, TestCafeRunConfiguration configuration) {
         super(testFrameworkName, consoleProperties);
         myTestCafeUiSession = testCafeUiSession;
         myEnvironment = environment;
+        myConfiguration = configuration;
     }
 
     @Override
@@ -35,21 +37,34 @@ public class TestCafeOutputToGeneralTestEventsConverter extends OutputToGeneralT
         if(myTestCafeUiSession != null) {
             TestCafeJson testResults = myTestCafeUiSession.getTestResultFinderStrategy().findTestResults();
             if(testResults == null) {
-                NotificationGroup group = NotificationGroup.balloonGroup("TestCafe Plugin - test error");
-                Notification notification = group.createNotification("TestCafe terminated without providing any result", NotificationType.ERROR);
-                Notifications.Bus.notify(notification, myEnvironment.getProject());
+                if(myConfiguration.isLiveMode()) {
+                    handleLiveMode();
+                } else {
+                    NotificationGroup group = NotificationGroup.balloonGroup("TestCafe Plugin - test error");
+                    Notification notification = group.createNotification("TestCafe terminated without providing any result", NotificationType.ERROR);
+                    Notifications.Bus.notify(notification, myEnvironment.getProject());
+                }
             } else {
                 processAllTestResults(testResults);
+            }
+        } else {
+            if(myConfiguration.isLiveMode()) {
+                handleLiveMode();
             }
         }
     }
 
+    private void handleLiveMode() {
+        GeneralTestEventsProcessor processor = getProcessor();
+        processor.onStartTesting();
+        processor.onTestStarted(new TestStartedEvent("Live mode",  TestCafeCurrentSetup.Folder));
+        processor.onTestFinished(new TestFinishedEvent("Live mode", (long) 0.0));
+    }
+
     private void processAllTestResults(TestCafeJson testResults) {
-
-            onStartTesting();
-            getProcessor().onTestsReporterAttached();
-            testResults.Fixtures.forEach(this::processTestFixture);
-
+        onStartTesting();
+        getProcessor().onTestsReporterAttached();
+        testResults.Fixtures.forEach(this::processTestFixture);
     }
 
     private void processTestFixture(TestCafeFixture testCafeFixture) {

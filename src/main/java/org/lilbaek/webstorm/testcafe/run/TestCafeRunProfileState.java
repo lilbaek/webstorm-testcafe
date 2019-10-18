@@ -7,7 +7,7 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessTerminatedListener;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -18,6 +18,7 @@ import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter;
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties;
 import com.intellij.execution.testframework.sm.runner.SMTestLocator;
+import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.javascript.nodejs.NodeCommandLineUtil;
 import com.intellij.javascript.nodejs.NodeConsoleAdditionalFilter;
@@ -30,6 +31,8 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -37,12 +40,16 @@ import org.jetbrains.annotations.Nullable;
 import org.lilbaek.webstorm.testcafe.helpers.TestCafeUiSession;
 import org.lilbaek.webstorm.testcafe.helpers.TestUiSessionProvider;
 
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugRunProfileState {
-
+    private static final Logger LOG;
     private ExecutionEnvironment myEnvironment;
     private final TestCafeRunConfiguration myConfiguration;
     private TestCafeUiSession myTestCafeUiSession;
@@ -59,33 +66,65 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         Project project = this.myEnvironment.getProject();
         final NodeJsInterpreter interpreter = this.myConfiguration.getInterpreterRef().resolve(project);
         final NodeJsLocalInterpreter localInterpreter = NodeJsLocalInterpreter.castAndValidate(interpreter);
-        final ProcessHandler processHandler = this.startProcess(localInterpreter, debugPort);
+        final GeneralCommandLine commandLine = this.getCommandLine(localInterpreter, debugPort);
+        final ProcessHandler processHandler = NodeCommandLineUtil.createProcessHandler(commandLine, true);
         ProcessTerminatedListener.attach(processHandler);
-
         String basePath = project.getBasePath();
 
+        assert basePath != null;
         final File workingDir = new File(basePath);
-        final ConsoleView consoleView;
-        if (isLiveMode()) {
-            consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
-            processHandler.startNotify();
-            consoleView.attachToProcess(processHandler);
-        } else {
-            consoleView = createTestConsoleView(processHandler, this.myEnvironment, new TestCafeTestLocationProvider(workingDir));
+        final ConsoleView consoleView = createTestConsoleView(processHandler, this.myEnvironment, new TestCafeTestLocationProvider(workingDir));
+        if (!NodeCommandLineUtil.isTerminalCommandLine(commandLine)) {
+            sendInput(processHandler, consoleView);
         }
         consoleView.addMessageFilter(new NodeStackTraceFilter(project, workingDir));
         consoleView.addMessageFilter(new NodeConsoleAdditionalFilter(project, workingDir));
         consoleView.addMessageFilter(new TypeScriptErrorConsoleFilter(project, workingDir));
-
+        if(!processHandler.isStartNotified()) {
+            processHandler.startNotify();
+        }
         final DefaultExecutionResult executionResult = new DefaultExecutionResult(consoleView, processHandler);
         executionResult.setRestartActions(new ToggleAutoTestAction());
         return executionResult;
     }
 
+    private static void sendInput(@NotNull final ProcessHandler processHandler, @NotNull final ConsoleView consoleView) {
+        final SMTRunnerConsoleView testConsole = (SMTRunnerConsoleView)consoleView;
+        final ConsoleViewImpl consoleImpl = (ConsoleViewImpl)testConsole.getConsole();
+        final Editor editor = consoleImpl.getEditor();
+        if (editor == null) {
+            TestCafeRunProfileState.LOG.warn("Cannot send input to TestCafe: no editor");
+            return;
+        }
+        editor.getContentComponent().addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(final KeyEvent event) {
+                this.sendCode(event);
+            }
+
+            private void sendCode(final KeyEvent event) {
+                if (!processHandler.isProcessTerminated()) {
+                    final OutputStream input = processHandler.getProcessInput();
+                    if (input != null) {
+                        try {
+                            //input.write(event.getModifiersEx());
+                            //input.write(event.getKeyCode());
+                            char ctrlBreak = (char)3;
+                            input.write(event.getKeyChar());
+                            input.flush();
+                        } catch (IOException e) {
+                            TestCafeRunProfileState.LOG.warn("Failed to send input to testcafe process", (Throwable)e);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     private ConsoleView createTestConsoleView(@NotNull ProcessHandler processHandler, @NotNull ExecutionEnvironment env, @NotNull SMTestLocator locator) {
         RunConfiguration runConfiguration = (RunConfiguration) env.getRunProfile();
-        SMTRunnerConsoleProperties consoleProperties = new ConsoleProperties(env, runConfiguration, env.getExecutor(), locator, myTestCafeUiSession);
-        final ConsoleView testsOutputConsoleView = SMTestRunnerConnectionUtil.createConsole(consoleProperties);
+        SMTRunnerConsoleProperties consoleProperties = new ConsoleProperties(env, runConfiguration, env.getExecutor(), locator, myTestCafeUiSession, myConfiguration);
+        final ConsoleView testsOutputConsoleView = SMTestRunnerConnectionUtil.createConsole("TestCafe", consoleProperties);
         testsOutputConsoleView.attachToProcess(processHandler);
         Disposer.register(env.getProject(), testsOutputConsoleView);
 
@@ -93,7 +132,7 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
     }
 
     @NotNull
-    private ProcessHandler startProcess(@NotNull NodeJsLocalInterpreter interpreter, int debugPort) throws ExecutionException {
+    private GeneralCommandLine getCommandLine(@NotNull NodeJsLocalInterpreter interpreter, int debugPort) throws ExecutionException {
         Project project = myEnvironment.getProject();
         final GeneralCommandLine commandLine = new GeneralCommandLine();
         commandLine.withCharset(StandardCharsets.UTF_8);
@@ -108,7 +147,8 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
             commandLine.addParameter(myConfiguration.options.browser);
         }
         if(TestCafeCurrentSetup.Folder == null || TestCafeCurrentSetup.Folder.isEmpty()) {
-            return handleBadConfiguration("Please only start a run using the context menu. Running using the toolbar is not supported.");
+            handleBadConfiguration("Please only start a run using the context menu. Running using the toolbar is not supported.");
+            return commandLine;
         }
         commandLine.addParameter(TestCafeCurrentSetup.Folder);
         if(TestCafeCurrentSetup.TestName != null && !TestCafeCurrentSetup.TestName.isEmpty()) {
@@ -133,14 +173,14 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         }
         //Make sure we get colors in the console from nodeJs
         commandLine.addParameter("--color");
-        return NodeCommandLineUtil.createProcessHandler(commandLine, false);
+        return commandLine;
     }
 
     private boolean isLiveMode() {
-        return TestCafeCurrentSetup.TestName != null && !TestCafeCurrentSetup.TestName.isEmpty() && myConfiguration.options.liveMode;
+        return myConfiguration.isLiveMode();
     }
 
-    private ProcessHandler handleBadConfiguration(String errorMessage) throws ExecutionException {
+    private void handleBadConfiguration(String errorMessage) throws ExecutionException {
         NotificationGroup group = NotificationGroup.balloonGroup("TestCafe Plugin");
         Notification notification = group.createNotification(errorMessage, NotificationType.ERROR);
         Notifications.Bus.notify(notification, myEnvironment.getProject());
@@ -155,8 +195,11 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         private final SMTestLocator myLocator;
         private TestCafeUiSession myTestCafeUiSession;
         private ExecutionEnvironment myEnvironment;
-        ConsoleProperties(@NotNull ExecutionEnvironment environment, @NotNull RunConfiguration config, @NotNull Executor executor, @NotNull SMTestLocator locator, TestCafeUiSession testCafeUiSession) {
+        private TestCafeRunConfiguration myConfiguration;
+
+        ConsoleProperties(@NotNull ExecutionEnvironment environment, @NotNull RunConfiguration config, @NotNull Executor executor, @NotNull SMTestLocator locator, TestCafeUiSession testCafeUiSession, TestCafeRunConfiguration configuration) {
             super(config, "TestCafe", executor);
+            this.myConfiguration = configuration;
             setIfUndefined(TestConsoleProperties.TRACK_RUNNING_TEST, false);
             setIfUndefined(TestConsoleProperties.OPEN_FAILURE_LINE, false);
             setIfUndefined(TestConsoleProperties.HIDE_PASSED_TESTS, false);
@@ -176,7 +219,11 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
 
         @Override
         public OutputToGeneralTestEventsConverter createTestEventsConverter(@NotNull String testFrameworkName, @NotNull TestConsoleProperties consoleProperties) {
-            return new TestCafeOutputToGeneralTestEventsConverter(myEnvironment, testFrameworkName, consoleProperties, myTestCafeUiSession);
+            return new TestCafeOutputToGeneralTestEventsConverter(myEnvironment, testFrameworkName, consoleProperties, myTestCafeUiSession, myConfiguration);
         }
+    }
+
+    static {
+        LOG = Logger.getInstance(TestCafeRunProfileState.class);
     }
 }
