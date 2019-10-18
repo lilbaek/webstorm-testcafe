@@ -8,6 +8,7 @@
       <ul>
         <li>Run a particular test, fixture, all tests in a file or directory via the context menu</li>
         <li>Debug a specific test, fixture, all tests in a file or directory via the context menu</li>
+        <li>Run a single test in live mode for easier test creation: https://devexpress.github.io/testcafe/documentation/using-testcafe/common-concepts/live-mode.html</li>
         <li>View test results in the run window</li>
       </ul>
       <br/>
