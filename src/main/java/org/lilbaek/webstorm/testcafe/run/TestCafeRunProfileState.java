@@ -107,9 +107,6 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
                     final OutputStream input = processHandler.getProcessInput();
                     if (input != null) {
                         try {
-                            //input.write(event.getModifiersEx());
-                            //input.write(event.getKeyCode());
-                            char ctrlBreak = (char)3;
                             input.write(event.getKeyChar());
                             input.flush();
                         } catch (IOException e) {
