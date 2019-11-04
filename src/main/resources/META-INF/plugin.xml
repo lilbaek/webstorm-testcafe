@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>com.lilbaek.webstorm-testcafe</id>
-    <name>TestCafe runner for Webstorm</name>
+    <name>TestCafe runner for WebStorm</name>
     <vendor url="https://github.com/lilbaek/webstorm-testcafe">Morten Lilbæk Pedersen</vendor>
     <description><![CDATA[
     Integration with TestCafe A node.js tool to automate end-to-end web testing. <br/>
