@@ -139,7 +139,11 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         NodeCommandLineUtil.addNodeOptionsForDebugging(commandLine, Collections.emptyList(), debugPort, true, interpreter, true);
 
         commandLine.withRedirectErrorStream(true);
-        commandLine.addParameter("node_modules/testcafe/lib/cli/index.js");
+        if(myConfiguration.options.nodeModulesLocation != null && !myConfiguration.options.nodeModulesLocation.isEmpty()) {
+            commandLine.addParameter(myConfiguration.options.nodeModulesLocation + "/testcafe/lib/cli/index.js");
+        } else {
+            commandLine.addParameter("node_modules/testcafe/lib/cli/index.js");
+        }
         if(myConfiguration.options.browser != null) {
             commandLine.addParameter(myConfiguration.options.browser);
         }

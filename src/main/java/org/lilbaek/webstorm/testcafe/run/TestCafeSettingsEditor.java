@@ -13,11 +13,13 @@
 // limitations under the License.
 package org.lilbaek.webstorm.testcafe.run;
 
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.TextBrowseFolderListener;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import org.jetbrains.annotations.NotNull;
-
 import javax.swing.*;
 
 public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfiguration> {
@@ -25,6 +27,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
     private JPanel myPanel;
     private ComboBox<String> browserChooser;
     private JCheckBox checkBoxLiveMode;
+    private TextFieldWithBrowseButton nodeModulesLocation;
 
     TestCafeSettingsEditor(Project project) {
         browserChooser.addItem("chrome");
@@ -32,6 +35,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
         browserChooser.addItem("opera");
         browserChooser.addItem("safari");
         browserChooser.addItem("edge");
+        nodeModulesLocation.addBrowseFolderListener(new TextBrowseFolderListener(new FileChooserDescriptor(false, true, false, false, false, false)));
     }
 
     @NotNull
@@ -44,6 +48,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
     protected void resetEditorFrom(@NotNull TestCafeRunConfiguration configuration) {
         browserChooser.setSelectedItem(configuration.options.browser);
         checkBoxLiveMode.setSelected(configuration.options.liveMode);
+        nodeModulesLocation.setText(configuration.options.nodeModulesLocation);
     }
 
     @Override
@@ -53,5 +58,6 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
             configuration.options.browser = browser;
         }
         configuration.options.liveMode = checkBoxLiveMode.isSelected();
+        configuration.options.nodeModulesLocation = nodeModulesLocation.getText();
     }
 }
