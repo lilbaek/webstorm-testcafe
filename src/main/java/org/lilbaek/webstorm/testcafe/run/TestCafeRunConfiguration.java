@@ -1,6 +1,5 @@
 package org.lilbaek.webstorm.testcafe.run;
 
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.LocatableConfigurationBase;
@@ -55,6 +54,7 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
         boolean liveMode;
         String browser;
         String nodeModulesLocation;
+        String cwd;
     }
 
     @Nullable
@@ -84,6 +84,9 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
         if(options.nodeModulesLocation != null) {
             e.setAttribute("testcafe-node-modules", options.nodeModulesLocation);
         }
+        if(options.cwd != null) {
+            e.setAttribute("cwd", options.cwd);
+        }
         element.addContent(e);
     }
 
@@ -97,6 +100,7 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
             Attribute browser = optionsElement.getAttribute("testcafe-browser");
             Attribute liveMode = optionsElement.getAttribute("testcafe-live-mode");
             Attribute nodeModulesLocation = optionsElement.getAttribute("testcafe-node-modules");
+            Attribute cwd = optionsElement.getAttribute("cwd");
             result.browser = null;
             if(browser != null) {
                 result.browser = browser.getValue();
@@ -106,6 +110,9 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
             }
             if(nodeModulesLocation != null) {
                 result.nodeModulesLocation = nodeModulesLocation.getValue();
+            }
+            if(cwd != null) {
+                result.cwd = cwd.getValue();
             }
         }
         return result;

@@ -43,9 +43,12 @@ import org.lilbaek.webstorm.testcafe.helpers.TestUiSessionProvider;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.Collections;
 
 public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugRunProfileState {
@@ -133,8 +136,20 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         Project project = myEnvironment.getProject();
         final GeneralCommandLine commandLine = new GeneralCommandLine();
         commandLine.withCharset(StandardCharsets.UTF_8);
-        String basePath = project.getBasePath();
-        commandLine.withWorkDirectory(basePath);
+
+        if(myConfiguration.options.cwd != null) {
+            Path path = Paths.get(myConfiguration.options.cwd);
+            boolean cwdExists = Files.exists(path) && Files.isDirectory(path);
+            if(cwdExists){
+                commandLine.withWorkDirectory(myConfiguration.options.cwd);
+            } else {
+                handleBadConfiguration("The current working directory " + myConfiguration.options.cwd + " is not a valid path.");
+                return commandLine;
+            }
+        } else {
+            String basePath = project.getBasePath();
+            commandLine.withWorkDirectory(basePath);
+        }
         commandLine.setExePath(interpreter.getInterpreterSystemDependentPath());
         NodeCommandLineUtil.addNodeOptionsForDebugging(commandLine, Collections.emptyList(), debugPort, true, interpreter, true);
 

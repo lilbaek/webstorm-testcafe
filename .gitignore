@@ -8,4 +8,10 @@ out/
 gen/
 dist/
 testData/
+bin/
+.vscode/
+.settings/
+.classpath
+.project
+
 
