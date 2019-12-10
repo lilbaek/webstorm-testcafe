@@ -55,7 +55,7 @@
         </constraints>
         <properties>
           <text value="Optional current working directory"/>
-          <toolTipText value="Specify a specific config file to use"/>
+          <toolTipText value="Specify a specific working directory to use"/>
         </properties>
       </component>
       <component id="dd500" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="cwd">

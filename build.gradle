@@ -24,6 +24,7 @@ dependencies {
 }
 
 patchPluginXml {
+    sinceBuild 193.4099
     changeNotes """      
       <ul>
       <li><b>1.3.0</b> <br/> Support for setting a specific current working directory to use.  
