@@ -28,6 +28,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
     private ComboBox<String> browserChooser;
     private JCheckBox checkBoxLiveMode;
     private TextFieldWithBrowseButton nodeModulesLocation;
+    private TextFieldWithBrowseButton cwd;
 
     TestCafeSettingsEditor(Project project) {
         browserChooser.addItem("chrome");
@@ -36,6 +37,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
         browserChooser.addItem("safari");
         browserChooser.addItem("edge");
         nodeModulesLocation.addBrowseFolderListener(new TextBrowseFolderListener(new FileChooserDescriptor(false, true, false, false, false, false)));
+        cwd.addBrowseFolderListener(new TextBrowseFolderListener(new FileChooserDescriptor(false, true, false, false, false, false)));
     }
 
     @NotNull
@@ -49,6 +51,7 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
         browserChooser.setSelectedItem(configuration.options.browser);
         checkBoxLiveMode.setSelected(configuration.options.liveMode);
         nodeModulesLocation.setText(configuration.options.nodeModulesLocation);
+        cwd.setText(configuration.options.cwd);
     }
 
     @Override
@@ -59,5 +62,6 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
         }
         configuration.options.liveMode = checkBoxLiveMode.isSelected();
         configuration.options.nodeModulesLocation = nodeModulesLocation.getText();
+        configuration.options.cwd = cwd.getText();
     }
 }
