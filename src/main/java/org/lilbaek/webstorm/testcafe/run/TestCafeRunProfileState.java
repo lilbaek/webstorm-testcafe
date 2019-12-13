@@ -137,7 +137,7 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
         final GeneralCommandLine commandLine = new GeneralCommandLine();
         commandLine.withCharset(StandardCharsets.UTF_8);
 
-        if(myConfiguration.options.cwd != null) {
+        if(myConfiguration.options.cwd != null && !myConfiguration.options.cwd.isEmpty()) {
             Path path = Paths.get(myConfiguration.options.cwd);
             boolean cwdExists = Files.exists(path) && Files.isDirectory(path);
             if(cwdExists){
