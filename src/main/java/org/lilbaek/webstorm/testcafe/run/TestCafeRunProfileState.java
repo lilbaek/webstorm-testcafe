@@ -163,7 +163,7 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
             String realBrowser = isHeadlessMode() ? myConfiguration.options.browser + ":headless" : myConfiguration.options.browser;
             commandLine.addParameter(realBrowser);
         }
-        if(myConfiguration.options.customArgs != null) {
+        if(myConfiguration.options.customArgs != null && !myConfiguration.options.customArgs.isEmpty()) {
           String[] additionalArguments = myConfiguration.options.customArgs.split(" ");
           for(String additionalArgument: additionalArguments) {
             commandLine.addParameter(additionalArgument);
