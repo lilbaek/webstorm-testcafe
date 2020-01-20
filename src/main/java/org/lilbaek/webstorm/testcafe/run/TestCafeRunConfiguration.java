@@ -44,6 +44,10 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
         return TestCafeCurrentSetup.TestName != null && !TestCafeCurrentSetup.TestName.isEmpty() && options.liveMode;
     }
 
+    public boolean isHeadlessMode() {
+        return options.headlessMode;
+    }
+
     @Nullable
     @Override
     public TestCafeRunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment executionEnvironment) {
@@ -52,9 +56,11 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
 
     static class Options {
         boolean liveMode;
+        boolean headlessMode;
         String browser;
         String nodeModulesLocation;
         String cwd;
+        String customArgs;
     }
 
     @Nullable
@@ -81,11 +87,15 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
             e.setAttribute("testcafe-browser", options.browser);
         }
         e.setAttribute("testcafe-live-mode", String.valueOf(options.liveMode));
+        e.setAttribute("testcafe-headless-mode", String.valueOf(options.headlessMode));
         if(options.nodeModulesLocation != null) {
             e.setAttribute("testcafe-node-modules", options.nodeModulesLocation);
         }
         if(options.cwd != null) {
             e.setAttribute("cwd", options.cwd);
+        }
+        if(options.customArgs != null) {
+            e.setAttribute("customArgs", options.customArgs);
         }
         element.addContent(e);
     }
@@ -99,8 +109,10 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
         if (optionsElement != null) {
             Attribute browser = optionsElement.getAttribute("testcafe-browser");
             Attribute liveMode = optionsElement.getAttribute("testcafe-live-mode");
+            Attribute headlessMode = optionsElement.getAttribute("testcafe-headless-mode");
             Attribute nodeModulesLocation = optionsElement.getAttribute("testcafe-node-modules");
             Attribute cwd = optionsElement.getAttribute("cwd");
+            Attribute customArgs = optionsElement.getAttribute("customArgs");
             result.browser = null;
             if(browser != null) {
                 result.browser = browser.getValue();
@@ -108,11 +120,17 @@ public class TestCafeRunConfiguration extends LocatableConfigurationBase<TestCaf
             if(liveMode != null) {
                 result.liveMode = Boolean.parseBoolean(liveMode.getValue());
             }
+            if(headlessMode != null) {
+                result.headlessMode = Boolean.parseBoolean(headlessMode.getValue());
+            }
             if(nodeModulesLocation != null) {
                 result.nodeModulesLocation = nodeModulesLocation.getValue();
             }
             if(cwd != null) {
                 result.cwd = cwd.getValue();
+            }
+            if(customArgs != null) {
+                result.customArgs = customArgs.getValue();
             }
         }
         return result;
