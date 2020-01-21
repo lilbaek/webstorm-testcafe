@@ -160,7 +160,14 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
             commandLine.addParameter("node_modules/testcafe/lib/cli/index.js");
         }
         if(myConfiguration.options.browser != null) {
-            commandLine.addParameter(myConfiguration.options.browser);
+            String realBrowser = isHeadlessMode() ? myConfiguration.options.browser + ":headless" : myConfiguration.options.browser;
+            commandLine.addParameter(realBrowser);
+        }
+        if(myConfiguration.options.customArgs != null && !myConfiguration.options.customArgs.isEmpty()) {
+          String[] additionalArguments = myConfiguration.options.customArgs.split(" ");
+          for(String additionalArgument: additionalArguments) {
+            commandLine.addParameter(additionalArgument);
+          }
         }
         if(TestCafeCurrentSetup.Folder == null || TestCafeCurrentSetup.Folder.isEmpty()) {
             handleBadConfiguration("Please only start a run using the context menu. Running using the toolbar is not supported.");
@@ -194,6 +201,10 @@ public class TestCafeRunProfileState implements RunProfileState, NodeLocalDebugR
 
     private boolean isLiveMode() {
         return myConfiguration.isLiveMode();
+    }
+
+    private boolean isHeadlessMode() {
+        return myConfiguration.isHeadlessMode();
     }
 
     private void handleBadConfiguration(String errorMessage) throws ExecutionException {

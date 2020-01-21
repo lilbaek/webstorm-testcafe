@@ -27,8 +27,10 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
     private JPanel myPanel;
     private ComboBox<String> browserChooser;
     private JCheckBox checkBoxLiveMode;
+    private JCheckBox checkBoxHeadlessMode;
     private TextFieldWithBrowseButton nodeModulesLocation;
     private TextFieldWithBrowseButton cwd;
+    private JTextField customArgs;
 
     TestCafeSettingsEditor(Project project) {
         browserChooser.addItem("chrome");
@@ -50,6 +52,8 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
     protected void resetEditorFrom(@NotNull TestCafeRunConfiguration configuration) {
         browserChooser.setSelectedItem(configuration.options.browser);
         checkBoxLiveMode.setSelected(configuration.options.liveMode);
+        checkBoxHeadlessMode.setSelected(configuration.options.headlessMode);
+        customArgs.setText(configuration.options.customArgs);
         nodeModulesLocation.setText(configuration.options.nodeModulesLocation);
         cwd.setText(configuration.options.cwd);
     }
@@ -61,6 +65,8 @@ public class TestCafeSettingsEditor extends SettingsEditor<TestCafeRunConfigurat
             configuration.options.browser = browser;
         }
         configuration.options.liveMode = checkBoxLiveMode.isSelected();
+        configuration.options.headlessMode = checkBoxHeadlessMode.isSelected();
+        configuration.options.customArgs = customArgs.getText();
         configuration.options.nodeModulesLocation = nodeModulesLocation.getText();
         configuration.options.cwd = cwd.getText();
     }
