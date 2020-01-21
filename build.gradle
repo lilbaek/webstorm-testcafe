@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.lilbaek'
-version '1.3.1'
+version '1.3.2'
 
 sourceCompatibility = 1.8
 repositories {
@@ -27,6 +27,7 @@ patchPluginXml {
     sinceBuild 193.4099
     changeNotes """      
       <ul>
+      <li><b>1.3.2</b> <br/> Added "headless" flag and custom args
       <li><b>1.3.1</b> <br/> Fix for working directory '' does not exist
       <li><b>1.3.0</b> <br/> Support for setting a specific current working directory to use.  
       <li><b>1.2.0</b> <br/> Support for latest WebStorm.<br/> Support for setting a specific node_modules folder to use.  
