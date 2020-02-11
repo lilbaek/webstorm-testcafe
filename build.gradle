@@ -13,7 +13,7 @@ repositories {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    alternativeIdePath = "C:\\Program Files\\JetBrains\\WebStorm 2019.2.3\\"
+    alternativeIdePath = "C:\\Program Files\\JetBrains\\WebStorm 2019.3.2\\"
     type 'IU'
     version 'LATEST-EAP-SNAPSHOT'
     plugins = ['JavaScriptLanguage', 'JavaScriptDebugger', 'NodeJS']
